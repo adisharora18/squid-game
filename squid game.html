@@ -1,0 +1,519 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+#G{background:#0a0a12;font-family:'Courier New',monospace;width:100%;min-height:600px;position:relative}
+.scr{display:none;width:100%;min-height:600px;flex-direction:column;align-items:center;position:relative}
+.scr.on{display:flex}
+canvas{display:block;width:100%;height:420px}
+.dlg{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);width:92%;max-width:460px;background:rgba(8,8,18,0.97);border-radius:8px;padding:14px 16px;z-index:60;border:1px solid #252535}
+.dlg-name{font-size:9px;letter-spacing:3px;margin-bottom:6px;font-weight:700}
+.dlg-text{font-size:13px;line-height:1.75;color:#ddd;min-height:20px}
+.dlg-cur{display:inline-block;width:2px;height:13px;background:#ccc;margin-left:2px;animation:bl .65s step-end infinite;vertical-align:middle}
+@keyframes bl{50%{opacity:0}}
+.btn-row{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:60;flex-wrap:wrap;justify-content:center;width:94%}
+.gbtn{background:transparent;border:1px solid;font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;padding:10px 20px;border-radius:5px;cursor:pointer;transition:all 0.2s;text-transform:uppercase}
+.gbtn:hover{transform:translateY(-2px)}
+.gbtn.red{border-color:#e31c3d;color:#e31c3d}.gbtn.red:hover{background:#e31c3d;color:#fff}
+.gbtn.gold{border-color:#e8c060;color:#e8c060}.gbtn.gold:hover{background:#e8c060;color:#000}
+.gbtn.green{border-color:#00cc66;color:#00cc66}.gbtn.green:hover{background:#00cc66;color:#000}
+.gbtn.gray{border-color:#444;color:#666}.gbtn.gray:hover{border-color:#888;color:#999}
+.dots{display:flex;gap:8px;position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:60}
+.dot{width:8px;height:8px;border-radius:50%;background:#1a1a2e;border:1px solid #333;transition:all 0.5s}
+.dot.done{background:#00cc66;border-color:#00cc66}
+.dot.now{background:#e8c060;border-color:#e8c060;box-shadow:0 0 8px #e8c060}
+.phlbl{position:absolute;top:28px;left:0;right:0;text-align:center;font-size:9px;letter-spacing:4px;color:#555;z-index:50}
+.pcbox{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:60;background:rgba(4,4,14,0.98);border:2px solid #e8c060;border-radius:10px;padding:28px 36px;width:88%;max-width:320px}
+.pc-lbl{font-size:9px;color:#666;letter-spacing:4px;margin-bottom:14px}
+.pc-num{font-size:36px;color:#e8c060;letter-spacing:12px;margin-bottom:10px}
+.pc-sub{font-size:10px;color:#444;letter-spacing:2px}
+.title-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:600px;padding:24px;text-align:center}
+.bigcircle{width:110px;height:110px;border-radius:50%;border:3px solid #e31c3d;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;animation:pc 2.5s ease-in-out infinite}
+@keyframes pc{0%,100%{box-shadow:0 0 0 0 rgba(227,28,61,0.3)}50%{box-shadow:0 0 0 18px rgba(227,28,61,0)}}
+.t1{font-size:24px;color:#f0f0f0;letter-spacing:6px;margin-bottom:8px}
+.t2{font-size:10px;color:#555;letter-spacing:5px;margin-bottom:28px}
+.icard{background:rgba(10,10,22,0.8);border:1px solid #1a1a30;border-radius:10px;padding:18px 22px;max-width:400px;width:100%;margin-bottom:26px}
+#ef{position:absolute;inset:0;background:#e31c3d;opacity:0;pointer-events:none;z-index:200;transition:opacity 0.15s}
+</style>
+
+<div id="G">
+
+<div class="scr on" id="s0">
+<div class="title-wrap">
+  <div class="bigcircle"><span style="font-size:44px;color:#e31c3d">★</span></div>
+  <div class="t1">SQUID GAME</div>
+  <div class="t2">THE MASTERMIND'S GAMBIT</div>
+  <div class="icard">
+    <div style="font-size:11px;color:#999;line-height:2.2">
+      <span style="color:#e31c3d">■</span> Player 456 competes in the final game<br>
+      <span style="color:#e8c060">■</span> Player 001 eliminated — passcode generated<br>
+      <span style="color:#00cc66">■</span> Gi-hun visits the dying Il-nam<br>
+      <span style="color:#555">■</span> The final confrontation at the main gate
+    </div>
+  </div>
+  <button class="gbtn red" style="font-size:13px;padding:14px 40px;letter-spacing:4px" onclick="goTo(1)">▶ START GAME</button>
+</div>
+</div>
+
+<div class="scr" id="s1">
+  <div class="dots"><div class="dot now"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+  <div class="phlbl" style="margin-top:14px">PHASE 1 — THE FINAL GAME</div>
+  <canvas id="c1"></canvas>
+  <div class="dlg"><div class="dlg-name" style="color:#e31c3d">PLAYER 456 — GI-HUN</div><div class="dlg-text" id="dt1"></div></div>
+  <div class="btn-row" id="br1"></div>
+  <div id="ef"></div>
+</div>
+
+<div class="scr" id="s2">
+  <div class="dots"><div class="dot done"></div><div class="dot now"></div><div class="dot"></div><div class="dot"></div></div>
+  <canvas id="c2"></canvas>
+  <div class="pcbox" id="pcbox" style="display:none">
+    <div class="pc-lbl">ELIMINATION RECORD — ACCESS CODE</div>
+    <div class="pc-num" id="pcn">_ _ _</div>
+    <div class="pc-sub">PLAYER 001 · RECORD SEALED</div>
+    <div style="margin-top:16px;font-size:10px;color:#333;letter-spacing:1px">Memorise this code</div>
+  </div>
+  <div class="btn-row" id="br2"></div>
+</div>
+
+<div class="scr" id="s3">
+  <div class="dots"><div class="dot done"></div><div class="dot done"></div><div class="dot now"></div><div class="dot"></div></div>
+  <div class="phlbl" style="margin-top:14px">PHASE 3 — THE HOSPITAL</div>
+  <canvas id="c3"></canvas>
+  <div class="dlg"><div class="dlg-name" id="dn3" style="color:#e8c060">OH IL-NAM — PLAYER 001</div><div class="dlg-text" id="dt3"></div></div>
+  <div class="btn-row" id="br3"></div>
+</div>
+
+<div class="scr" id="s4">
+  <div class="dots"><div class="dot done"></div><div class="dot done"></div><div class="dot done"></div><div class="dot now"></div></div>
+  <div class="phlbl" style="margin-top:14px">PHASE 4 — THE MAIN GATE</div>
+  <canvas id="c4"></canvas>
+  <div class="dlg"><div class="dlg-name" id="dn4" style="color:#e31c3d">GI-HUN — PLAYER 456</div><div class="dlg-text" id="dt4"></div></div>
+  <div class="btn-row" id="br4"></div>
+</div>
+
+<div class="scr" id="s5">
+<div class="title-wrap">
+  <div style="font-size:11px;color:#e8c060;letter-spacing:5px;margin-bottom:16px">GAME COMPLETE</div>
+  <div style="width:76px;height:76px;border-radius:50%;border:2px solid #e8c060;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
+    <span style="font-size:22px;color:#e8c060">001</span>
+  </div>
+  <div style="font-size:15px;color:#fff;letter-spacing:3px;margin-bottom:8px">THE TRUTH WAS CODED</div>
+  <div style="font-size:10px;color:#444;letter-spacing:2px;margin-bottom:24px">OH IL-NAM NEVER SPOKE — BUT YOU FOUND IT</div>
+  <div class="icard">
+    <div style="font-size:12px;color:#aaa;line-height:2;text-align:left">
+      <span style="color:#e8c060">●</span> Player 456 survived the final game<br>
+      <span style="color:#e31c3d">●</span> Player 001 eliminated — passcode generated<br>
+      <span style="color:#00cc66">●</span> Il-nam on his deathbed — silence was his answer<br>
+      <span style="color:#555">●</span> At the gate — he still said nothing
+    </div>
+  </div>
+  <button class="gbtn gold" onclick="goTo(0)" style="padding:12px 32px">↺ PLAY AGAIN</button>
+</div>
+</div>
+
+</div>
+
+<script>
+var rafMap = {};
+
+function stopAll(){
+  for(var k in rafMap){ cancelAnimationFrame(rafMap[k]); }
+  rafMap = {};
+}
+
+function goTo(n){
+  stopAll();
+  document.querySelectorAll('.scr').forEach(function(s){ s.classList.remove('on'); });
+  document.getElementById('s'+n).classList.add('on');
+  if(n===1) s1();
+  if(n===2) s2();
+  if(n===3) s3();
+  if(n===4) s4();
+}
+
+function typeText(el, text, speed, cb){
+  el.innerHTML='';
+  var i=0;
+  var cur=document.createElement('span');
+  cur.className='dlg-cur';
+  function tick(){
+    if(i<text.length){ el.textContent+=text[i++]; el.appendChild(cur); setTimeout(tick, speed||30); }
+    else { cur.remove(); if(cb) cb(); }
+  }
+  tick();
+}
+
+function setBtns(id, btns){
+  var r=document.getElementById(id); r.innerHTML='';
+  btns.forEach(function(b){
+    var btn=document.createElement('button');
+    btn.className='gbtn '+b.cls; btn.textContent=b.label; btn.onclick=b.fn;
+    r.appendChild(btn);
+  });
+}
+
+function lc(hex,a){ a=a||30; var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return '#'+[Math.min(255,r+a),Math.min(255,g+a),Math.min(255,b+a)].map(function(v){return v.toString(16).padStart(2,'0')}).join(''); }
+function dc(hex,a){ a=a||30; var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return '#'+[Math.max(0,r-a),Math.max(0,g-a),Math.max(0,b-a)].map(function(v){return v.toString(16).padStart(2,'0')}).join(''); }
+
+function box3d(ctx,x,y,w,h,d,front,top,side){
+  ctx.fillStyle=front; ctx.fillRect(x,y,w,h);
+  ctx.fillStyle=top;
+  ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+d,y-d*0.55); ctx.lineTo(x+w+d,y-d*0.55); ctx.lineTo(x+w,y); ctx.closePath(); ctx.fill();
+  ctx.fillStyle=side;
+  ctx.beginPath(); ctx.moveTo(x+w,y); ctx.lineTo(x+w+d,y-d*0.55); ctx.lineTo(x+w+d,y+h-d*0.55); ctx.lineTo(x+w,y+h); ctx.closePath(); ctx.fill();
+}
+
+function char3d(ctx,x,y,suit,skin,num,sc,dead,alpha,tilt){
+  sc=sc||1; alpha=(alpha===undefined||alpha===null)?1:alpha; tilt=tilt||0;
+  ctx.save(); ctx.globalAlpha=alpha; ctx.translate(x,y);
+  if(tilt) ctx.rotate(tilt);
+  ctx.fillStyle='rgba(0,0,0,0.2)';
+  ctx.beginPath(); ctx.ellipse(0,sc*36,sc*16,sc*5,0,0,Math.PI*2); ctx.fill();
+  box3d(ctx,-sc*12,sc*10,sc*10,sc*18,sc*4,dc(skin,60),dc(skin,40),dc(skin,80));
+  box3d(ctx,sc*2,sc*10,sc*10,sc*18,sc*4,dc(skin,60),dc(skin,40),dc(skin,80));
+  box3d(ctx,-sc*14,-sc*24,sc*28,sc*34,sc*7,suit,lc(suit,40),dc(suit,30));
+  ctx.fillStyle='rgba(255,255,255,0.18)';
+  ctx.beginPath(); ctx.roundRect(-sc*8,-sc*19,sc*16,sc*11,sc*2); ctx.fill();
+  if(num){ ctx.fillStyle='rgba(255,255,255,0.75)'; ctx.font='bold '+Math.round(sc*7)+'px Courier New'; ctx.textAlign='center'; ctx.fillText(num,0,-sc*11); }
+  var g=ctx.createRadialGradient(-sc*4,-sc*42,sc*2,-sc*2,-sc*40,sc*13);
+  g.addColorStop(0,lc(skin,35)); g.addColorStop(1,dc(skin,20));
+  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,-sc*38,sc*13,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,0.13)'; ctx.beginPath(); ctx.arc(sc*7,-sc*37,sc*9,0,Math.PI*2); ctx.fill();
+  if(dead){
+    ctx.strokeStyle='rgba(0,0,0,0.55)'; ctx.lineWidth=sc*1.5;
+    ctx.beginPath(); ctx.moveTo(-sc*7,-sc*41); ctx.lineTo(-sc*3,-sc*37); ctx.moveTo(-sc*3,-sc*41); ctx.lineTo(-sc*7,-sc*37); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sc*3,-sc*41); ctx.lineTo(sc*7,-sc*37); ctx.moveTo(sc*7,-sc*41); ctx.lineTo(sc*3,-sc*37); ctx.stroke();
+  } else {
+    ctx.fillStyle='#1a1008';
+    ctx.beginPath(); ctx.ellipse(-sc*5,-sc*39,sc*2.5,sc*2,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(sc*5,-sc*39,sc*2.5,sc*2,0,0,Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function lbl(ctx,x,y,txt,col){
+  ctx.font='bold 9px Courier New'; ctx.textAlign='center';
+  ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillText(txt,x+1,y+1);
+  ctx.fillStyle=col||'#aaa'; ctx.fillText(txt,x,y);
+}
+
+/* ── SCENE 1 ── */
+function s1(){
+  var cv=document.getElementById('c1');
+  var W=cv.offsetWidth||380; cv.width=W; cv.height=420;
+  var ctx=cv.getContext('2d');
+
+  // All state vars — NO tick-based triggers, use boolean flags only
+  var animTick=0;
+  var gameStarted=false;   // player pressed "Begin Final Game"
+  var wobbling=false;      // p001 wobble phase
+  var falling=false;       // p001 fall phase
+  var elimDone=false;      // elimination sequence fully done (show button once)
+  var p001={x:W*0.68,y:220,wob:0,fall:0,op:1,dead:false};
+  var stars=[];
+  for(var i=0;i<80;i++) stars.push({x:Math.random()*W,y:Math.random()*200,r:Math.random()*1.5+0.2,t:Math.random()*6.28});
+
+  function startElim(){
+    gameStarted=true; wobbling=true;
+    // After wobble period, trigger fall
+    setTimeout(function(){
+      wobbling=false; falling=true;
+      // Flash
+      var ef=document.getElementById('ef');
+      ef.style.opacity=0.9;
+      setTimeout(function(){ ef.style.opacity=0; },180);
+      // After fall settles, show dialogue
+      setTimeout(function(){
+        falling=false; p001.dead=true; p001.op=0.3;
+        typeText(document.getElementById('dt1'),'Player 001 has been eliminated.',26,function(){
+          setTimeout(function(){
+            typeText(document.getElementById('dt1'),'A passcode has been generated from the record.',26,function(){
+              if(!elimDone){
+                elimDone=true;
+                setTimeout(function(){
+                  setBtns('br1',[{label:'→ View Passcode',cls:'gold',fn:function(){ goTo(2); }}]);
+                },400);
+              }
+            });
+          },700);
+        });
+      },1200);
+    },1800);
+  }
+
+  typeText(document.getElementById('dt1'),'The final game... only two players remain.',28,function(){
+    setTimeout(function(){
+      setBtns('br1',[{label:'→ Begin Final Game',cls:'red',fn:function(){
+        document.getElementById('br1').innerHTML='';
+        startElim();
+      }}]);
+    },300);
+  });
+
+  function draw(){
+    animTick++;
+    ctx.clearRect(0,0,W,420);
+
+    // Sky
+    var sky=ctx.createLinearGradient(0,0,0,280);
+    sky.addColorStop(0,'#02020a'); sky.addColorStop(1,'#0a0a1e');
+    ctx.fillStyle=sky; ctx.fillRect(0,0,W,280);
+    stars.forEach(function(s){ s.t+=0.018; ctx.fillStyle='rgba(255,255,255,'+(0.2+Math.sin(s.t)*0.22)+')'; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,6.28); ctx.fill(); });
+    ctx.fillStyle='#e8e0c8'; ctx.beginPath(); ctx.arc(W-60,48,20,0,6.28); ctx.fill();
+    ctx.fillStyle='#02020a'; ctx.beginPath(); ctx.arc(W-50,44,16,0,6.28); ctx.fill();
+
+    // Iso floor
+    for(var row=0;row<6;row++){
+      for(var col=0;col<Math.ceil(W/56)+2;col++){
+        var tx=col*56-(row%2?28:0), ty=280+row*14;
+        ctx.fillStyle=((row+col)%2===0)?'#14141e':'#101018';
+        ctx.beginPath(); ctx.rect(tx,ty,56,14); ctx.fill();
+        ctx.strokeStyle='rgba(227,28,61,0.07)'; ctx.lineWidth=0.5; ctx.stroke();
+      }
+    }
+    ctx.fillStyle='#e31c3d'; ctx.fillRect(0,278,W,3);
+
+    // Guards
+    char3d(ctx,W*0.5,248,'#aa1a1a','#c09060',null,0.78);
+    char3d(ctx,W*0.08,248,'#aa1a1a','#c09060',null,0.65);
+    char3d(ctx,W*0.92,248,'#aa1a1a','#c09060',null,0.65);
+
+    // Update p001 animation state
+    if(wobbling){ p001.wob=Math.sin(animTick*0.28)*3; }
+    if(falling){ p001.fall=Math.min(Math.PI/2, p001.fall+0.06); p001.op=Math.max(0.25, p001.op-0.012); }
+
+    // Draw p001
+    ctx.save(); ctx.globalAlpha=p001.op;
+    if(falling||p001.dead){
+      ctx.translate(p001.x, p001.y + p001.fall*18); ctx.rotate(p001.fall);
+      char3d(ctx,0,0,'#1a2a1a','#c9a87c','001',0.82,p001.dead,1,0);
+    } else {
+      char3d(ctx,p001.x,p001.y,'#1a2a1a','#c9a87c','001',0.82,false,1,p001.wob*0.025);
+    }
+    ctx.restore();
+    if(!falling&&!p001.dead) lbl(ctx,p001.x,p001.y-66,'PLAYER 001','#e8c060');
+
+    // Draw p456
+    char3d(ctx,W*0.25,222,'#8b1a1a','#d4845a','456',0.85);
+    lbl(ctx,W*0.25,158,'PLAYER 456','#e31c3d');
+
+    rafMap['s1']=requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* ── SCENE 2 ── */
+function s2(){
+  var cv=document.getElementById('c2');
+  var W=cv.offsetWidth||380; cv.width=W; cv.height=420;
+  var ctx=cv.getContext('2d');
+  var t=0;
+  var parts=[];
+  for(var i=0;i<30;i++) parts.push({x:Math.random()*W,y:Math.random()*420,vy:-(Math.random()*0.5+0.2),vx:(Math.random()-0.5)*0.3,a:Math.random()*6.28,r:Math.random()*2+1});
+
+  // Reset pcbox state
+  var pb=document.getElementById('pcbox'); pb.style.display='none';
+  document.getElementById('pcn').textContent='_ _ _';
+  document.getElementById('br2').innerHTML='';
+
+  function draw(){
+    t++;
+    ctx.fillStyle='rgba(4,4,12,0.88)'; ctx.fillRect(0,0,W,420);
+    for(var i=0;i<W;i+=40){ ctx.strokeStyle='rgba(232,192,96,0.04)'; ctx.lineWidth=0.5; ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,420); ctx.stroke(); }
+    for(var j=0;j<420;j+=40){ ctx.strokeStyle='rgba(232,192,96,0.04)'; ctx.lineWidth=0.5; ctx.beginPath(); ctx.moveTo(0,j); ctx.lineTo(W,j); ctx.stroke(); }
+    parts.forEach(function(p){ p.y+=p.vy; p.x+=p.vx; p.a+=0.006; if(p.y<0){p.y=420;} ctx.fillStyle='rgba(232,192,96,'+(Math.abs(Math.sin(p.a))*0.22)+')'; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,6.28); ctx.fill(); });
+    ctx.fillStyle='rgba(232,192,96,'+(0.04+Math.sin(t*0.04)*0.02)+')';
+    ctx.font='bold '+(118+Math.sin(t*0.03)*4)+'px Courier New'; ctx.textAlign='center';
+    ctx.fillText('001',W/2,265+Math.sin(t*0.025)*6);
+    rafMap['s2']=requestAnimationFrame(draw);
+  }
+  draw();
+
+  setTimeout(function(){
+    pb.style.display='block';
+    var shown=0; var pc=document.getElementById('pcn');
+    var iv=setInterval(function(){
+      shown++;
+      var arr=['0','0','1'];
+      pc.textContent=arr.slice(0,shown).join(' ')+'  '+'_'.repeat(Math.max(0,3-shown));
+      if(shown>=3){ clearInterval(iv); setTimeout(function(){ setBtns('br2',[{label:'→ Go to Hospital',cls:'green',fn:function(){ goTo(3); }}]); },500); }
+    },500);
+  },700);
+}
+
+/* ── SCENE 3 ── */
+function s3(){
+  var cv=document.getElementById('c3');
+  var W=cv.offsetWidth||380; cv.width=W; cv.height=420;
+  var ctx=cv.getContext('2d');
+  var t=0, gx=-60, gt=W*0.3, lineIdx=0, linesActive=false;
+  document.getElementById('br3').innerHTML='';
+
+  var lines=[
+    {spk:'GI-HUN',col:'#e31c3d',txt:"Il-nam... You're alive?"},
+    {spk:'OH IL-NAM',col:'#e8c060',txt:'...'},
+    {spk:'GI-HUN',col:'#e31c3d',txt:'Why did you do this? All those people...'},
+    {spk:'OH IL-NAM',col:'#e8c060',txt:'...'},
+    {spk:'GI-HUN',col:'#e31c3d',txt:'ANSWER ME! Why?!'},
+    {spk:'OH IL-NAM',col:'#e8c060',txt:'...'}
+  ];
+
+  function showLine(){
+    if(lineIdx>=lines.length){ setBtns('br3',[{label:'→ Main Gate',cls:'gold',fn:function(){ goTo(4); }}]); return; }
+    var l=lines[lineIdx];
+    document.getElementById('dn3').textContent=l.spk;
+    document.getElementById('dn3').style.color=l.col;
+    typeText(document.getElementById('dt3'),l.txt,l.txt==='...'?110:28,function(){
+      setTimeout(function(){
+        lineIdx++;
+        if(lineIdx<lines.length){
+          setBtns('br3',[{label:'▶ Continue',cls:'gray',fn:function(){ document.getElementById('br3').innerHTML=''; showLine(); }}]);
+        } else { showLine(); }
+      },200);
+    });
+  }
+
+  function draw(){
+    t++;
+    if(gx<gt){ gx+=Math.max(0.8,(gt-gx)*0.05); }
+    // Check if we should start dialogue (player has walked in far enough)
+    if(!linesActive && gx>=gt-5){ linesActive=true; showLine(); }
+
+    ctx.clearRect(0,0,W,420);
+    ctx.fillStyle='#dce8f0'; ctx.fillRect(0,0,W,300);
+    ctx.fillStyle='#b8cdd8'; ctx.fillRect(0,195,W,10);
+
+    for(var row=0;row<5;row++){
+      for(var col=0;col<Math.ceil(W/36)+1;col++){
+        ctx.fillStyle=((row+col)%2===0)?'#c0d0da':'#d0e0ea';
+        ctx.fillRect(col*36,300+row*18,36,18);
+        ctx.strokeStyle='rgba(160,190,210,0.3)'; ctx.lineWidth=0.5; ctx.strokeRect(col*36,300+row*18,36,18);
+      }
+    }
+
+    box3d(ctx,W*0.58,26,115,105,8,'#8ab8d8','#aad0ec','#6890b0');
+    ctx.fillStyle='#a8cce8'; ctx.fillRect(W*0.58+4,30,107,97);
+    ctx.strokeStyle='rgba(255,255,255,0.35)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(W*0.58+58,30); ctx.lineTo(W*0.58+58,127); ctx.moveTo(W*0.58+4,78); ctx.lineTo(W*0.58+111,78); ctx.stroke();
+
+    var bx=W*0.22, by=230;
+    box3d(ctx,bx-14,by+25,165,60,10,'#b0c0c8','#c8d8e0','#8898a4');
+    box3d(ctx,bx-8,by+18,153,18,6,'#e0eaf0','#eef4f8','#c0ced8');
+    ctx.fillStyle='#c0ced8'; ctx.beginPath(); ctx.roundRect(bx-8,by+32,153,52,3); ctx.fill();
+    ctx.fillStyle='#f0f0f4'; ctx.beginPath(); ctx.roundRect(bx+6,by+20,70,16,3); ctx.fill();
+    ctx.strokeStyle='#aab8c4'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(bx+160,by-45); ctx.lineTo(bx+160,by+25); ctx.stroke();
+    ctx.fillStyle='#b0d8a8'; ctx.beginPath(); ctx.roundRect(bx+150,by-65,20,24,3); ctx.fill();
+    box3d(ctx,bx-70,by-22,55,44,8,'#182430','#20303e','#101820');
+    ctx.strokeStyle='#00ee70'; ctx.lineWidth=1.2; ctx.beginPath();
+    for(var mx=0;mx<50;mx+=4){ ctx.lineTo(bx-68+mx,by+2+Math.sin((mx+t)*0.35)*6); } ctx.stroke();
+    box3d(ctx,12,148,55,152,8,'#a8b8c4','#b8c8d4','#8898a4');
+    ctx.fillStyle='#778890'; ctx.beginPath(); ctx.arc(63,232,4,0,6.28); ctx.fill();
+
+    ctx.save();
+    ctx.translate(W*0.5,255); ctx.rotate(-Math.PI/2);
+    ctx.scale(1+Math.sin(t*0.035)*0.018,1);
+    char3d(ctx,0,0,'#d0e8f4','#c9a87c','001',0.76,false,1,0);
+    ctx.restore();
+    lbl(ctx,W*0.5,186,'PLAYER 001','#e8c060');
+
+    if(gx>20){
+      char3d(ctx,gx,292,'#3a3a5a','#d4845a','456',0.82);
+      lbl(ctx,gx,228,'PLAYER 456','#e31c3d');
+    }
+    rafMap['s3']=requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* ── SCENE 4 ── */
+function s4(){
+  var cv=document.getElementById('c4');
+  var W=cv.offsetWidth||380; cv.width=W; cv.height=420;
+  var ctx=cv.getContext('2d');
+  var t=0, shk=0, shaking=false, ilx=W*0.7, ilop=1, illeave=false, lineIdx=0;
+  document.getElementById('br4').innerHTML='';
+  var stars=[];
+  for(var i=0;i<60;i++) stars.push({x:Math.random()*W,y:Math.random()*160,r:Math.random()*1.4+0.2,tw:Math.random()*6.28});
+
+  var lines=[
+    {spk:'GI-HUN',col:'#e31c3d',txt:"Il-nam! I know you're behind this gate."},
+    {spk:'GI-HUN',col:'#e31c3d',txt:'Come out. Why did you create the game?'},
+    {spk:'OH IL-NAM',col:'#e8c060',txt:'...'},
+    {spk:'GI-HUN',col:'#e31c3d',txt:'People DIED. Because of YOU.'},
+    {spk:'OH IL-NAM',col:'#e8c060',txt:'...'},
+    {spk:'GI-HUN',col:'#e31c3d',txt:'SAY SOMETHING!!'},
+    {spk:'OH IL-NAM',col:'#e8c060',txt:'...'},
+    {spk:'NARRATOR',col:'#888',txt:'Oh Il-nam turns. Walks away. Says nothing. The silence IS the answer.'}
+  ];
+
+  function showLine4(){
+    if(lineIdx>=lines.length){ setBtns('br4',[{label:'→ Ending',cls:'gold',fn:function(){ goTo(5); }}]); return; }
+    var l=lines[lineIdx];
+    document.getElementById('dn4').textContent=l.spk; document.getElementById('dn4').style.color=l.col;
+    if(l.spk==='GI-HUN'&&lineIdx>=3) shaking=true;
+    if(lineIdx===6) illeave=true;
+    typeText(document.getElementById('dt4'),l.txt,l.txt==='...'?90:26,function(){
+      setTimeout(function(){
+        lineIdx++;
+        if(lineIdx<lines.length){
+          setBtns('br4',[{label:'▶ Continue',cls:'gray',fn:function(){ document.getElementById('br4').innerHTML=''; showLine4(); }}]);
+        } else { showLine4(); }
+      },160);
+    });
+  }
+
+  function draw(){
+    t++; if(shaking) shk++;
+    if(illeave){ ilx+=1.3; ilop=Math.max(0,ilop-0.009); }
+    ctx.clearRect(0,0,W,420);
+
+    var sky=ctx.createLinearGradient(0,0,0,360);
+    sky.addColorStop(0,'#010108'); sky.addColorStop(1,'#07071a');
+    ctx.fillStyle=sky; ctx.fillRect(0,0,W,360);
+    stars.forEach(function(s){ s.tw+=0.02; ctx.fillStyle='rgba(255,255,255,'+(0.15+Math.sin(s.tw)*0.2)+')'; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,6.28); ctx.fill(); });
+    ctx.fillStyle='#ece4d4'; ctx.beginPath(); ctx.arc(W-58,46,20,0,6.28); ctx.fill();
+    ctx.fillStyle='#010108'; ctx.beginPath(); ctx.arc(W-48,42,16,0,6.28); ctx.fill();
+
+    ctx.fillStyle='#141418'; ctx.fillRect(0,355,W,65);
+    ctx.strokeStyle='#252528'; ctx.setLineDash([18,16]); ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(0,390); ctx.lineTo(W,390); ctx.stroke(); ctx.setLineDash([]);
+
+    var gw=W*0.54, gh=145, gx=(W-gw)/2, gy=198;
+    box3d(ctx,gx-22,gy,22,gh+20,12,'#1e1e28','#2a2a38','#141418');
+    box3d(ctx,gx+gw,gy,22,gh+20,12,'#1e1e28','#2a2a38','#141418');
+    box3d(ctx,gx-26,gy-18,30,20,14,'#282838','#353545','#141418');
+    box3d(ctx,gx+gw-4,gy-18,30,20,14,'#282838','#353545','#141418');
+    for(var bi=0;bi<=8;bi++){
+      var bx2=gx+bi*(gw/8);
+      box3d(ctx,bx2-3,gy,6,gh,3,'#0e0e18','#181824','#080810');
+    }
+    ctx.strokeStyle='#2a2a3a'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.arc(gx+gw/2,gy,gw/2,Math.PI,0); ctx.stroke();
+    ctx.fillStyle='rgba(255,60,140,0.85)'; ctx.font='bold 9px Courier New'; ctx.textAlign='center';
+    ctx.fillText('◆ SQUID GAME HQ ◆',W/2,gy-28);
+
+    var sx=shaking?Math.sin(shk*0.5)*3:0;
+    char3d(ctx,W*0.27+sx,316,'#3a3a5a','#d4845a','456',0.82);
+    lbl(ctx,W*0.27+sx,272,'PLAYER 456','#e31c3d');
+
+    if(ilop>0.04){
+      char3d(ctx,ilx,316,'#1a2a1a','#c9a87c','001',0.78,false,ilop);
+      if(ilop>0.2) lbl(ctx,ilx,272,'PLAYER 001','#e8c060');
+    }
+
+    if(shaking){
+      ctx.font='12px Courier New'; ctx.textAlign='center';
+      for(var qi=0;qi<3;qi++){
+        var qa=shk*0.07+qi*2.1, qr=18+Math.sin(shk*0.12+qi)*10;
+        ctx.fillStyle='rgba(227,28,61,'+(0.3+Math.sin(shk*0.1+qi)*0.15)+')';
+        ctx.fillText('?',W*0.27+Math.cos(qa)*qr*1.6+sx,316-64-Math.sin(qa)*qr);
+      }
+    }
+
+    rafMap['s4']=requestAnimationFrame(draw);
+  }
+  draw();
+  setTimeout(showLine4,700);
+}
+</script>
